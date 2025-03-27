@@ -1,0 +1,185 @@
+﻿<Window x:Class="ElectricUtilityEditor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ElectricUtilityEditor"
+        xmlns:esri="http://schemas.esri.com/arcgis/runtime/2013"
+        mc:Ignorable="d"
+        Title="ArcGIS Maps SDK - Offline Utility Network (Edit Associations)"
+        xmlns:calcite="http://schemas.esri.com/calcite/2024"
+        Height="450"
+        Width="800">
+    <Window.Resources>
+        <local:VisibilityConverter x:Key="VisibilityConverter" />
+        <local:IsEnabledConverter x:Key="IsEnabledConverter" />
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Border  Background="{StaticResource CalciteBrandBrush}"
+                 BorderBrush="{DynamicResource CalciteBorder3Brush}"
+                 BorderThickness="0,1,1,1">
+            <TextBlock VerticalAlignment="Center"
+                       FontSize="20"
+                       Margin="10"
+                       FontWeight="SemiBold"
+                       Foreground="White"
+                       Text="ArcGIS Native Maps SDKs - Offline Utility Network (Edit Associations)"
+                       TextOptions.TextRenderingMode="Aliased"
+                       MouseUp="OnZoomToEditArea" />
+        </Border>
+        <Grid Grid.Row="1">
+            <esri:MapView x:Name="MyMapView"
+                          GeoViewTapped="OnGeoViewTapped" />
+            <GroupBox  x:Name="AssociationGrid"
+                       Visibility="Collapsed"
+                       MinHeight="250"
+                       MinWidth="600"
+                       VerticalAlignment="Top"
+                       HorizontalAlignment="Right">
+                <GroupBox.Header>
+                    <Grid                           Grid.ColumnSpan="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="35" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Image  Source="{Binding Graphic.Swatch}" />
+                        <TextBlock Text="{Binding Association.AssociationType}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Grid.Column="1" />
+                    </Grid>
+                </GroupBox.Header>
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Grid DataContext="{Binding FromElement}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="35" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Image  Source="{Binding Swatch}" />
+                        <Grid Grid.Column="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="{Binding Element.NetworkSource.Name}" />
+                            <TextBlock Text="{Binding  Element.AssetGroup.Name}"
+                                       Grid.Row="1" />
+                            <TextBlock Text="{Binding  Element.AssetType.Name}"
+                                       FontWeight="Bold"
+                                       Grid.Row="2" />
+                            <ComboBox   ItemsSource="{Binding Element.AssetType.TerminalConfiguration.Terminals}"
+                                        SelectedItem="{Binding Element.Terminal}"
+                                        Visibility="{Binding Element, Converter={StaticResource VisibilityConverter}, ConverterParameter=Terminal}"
+                                        IsEnabled="{Binding Element, Converter={StaticResource IsEnabledConverter}, ConverterParameter=Terminal}"
+                                        Grid.Row="3">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+                    </Grid>
+                    <Grid Grid.Column="1"
+                          DataContext="{Binding ToElement}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="35" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Image  Source="{Binding Swatch}" />
+                        <Grid Grid.Column="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="{Binding Element.NetworkSource.Name}" />
+                            <TextBlock Text="{Binding  Element.AssetGroup.Name}"
+                                       Grid.Row="1" />
+                            <TextBlock Text="{Binding  Element.AssetType.Name}"
+                                       FontWeight="Bold"
+                                       Grid.Row="2" />
+                            <ComboBox   ItemsSource="{Binding Element.AssetType.TerminalConfiguration.Terminals}"
+                                        SelectedItem="{Binding Element.Terminal}"
+                                        Visibility="{Binding Element, Converter={StaticResource VisibilityConverter}, ConverterParameter=Terminal}"
+                                        IsEnabled="{Binding Element, Converter={StaticResource IsEnabledConverter}, ConverterParameter=Terminal}"
+                                        Grid.Row="3">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+                    </Grid>
+                    <Button Content="Update"
+                            Click="OnUpdate"
+                            Style="{StaticResource CalcitePrimaryButtonStyle}"
+                            Grid.Row="2"
+                            Margin="5" />
+                    <Button Content="Delete"
+                            Click="OnDelete"
+                            Style="{StaticResource CalciteDangerButtonStyle}"
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            Margin="5" />
+                </Grid>
+            </GroupBox>
+        </Grid>
+        <GroupBox  x:Name="ErrorGroup"
+                   Visibility="Collapsed"
+                   MinHeight="150"
+                   MinWidth="500"
+                   Grid.Row="1"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center">
+            <GroupBox.Header>
+                <Grid                           Grid.ColumnSpan="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="50" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Image  Source="{calcite:CalciteIconImage Icon=ExclamationMarkTriangle, Brush=Red}"
+                            Width="32"
+                            Height="32" />
+                    <TextBlock x:Name="ErrorType"
+                               Text="ArcGISRuntimeException"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Grid.Column="1" />
+                </Grid>
+            </GroupBox.Header>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock x:Name="ErrorMessage"
+                           Text="Test message"
+                           FontSize="16"
+                           Margin="10" />
+                <Button Content="OK"
+                        Click="OnDismissError"
+                        Style="{StaticResource CalciteSecondaryButtonStyle}"
+                        Grid.Row="1"
+                        HorizontalAlignment="Right" />
+            </Grid>
+        </GroupBox>
+    </Grid>
+</Window>

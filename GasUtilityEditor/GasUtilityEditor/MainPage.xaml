@@ -1,0 +1,276 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:esri="http://schemas.esri.com/arcgis/runtime/2013"
+             xmlns:calcite="http://schemas.esri.com/calcite/2024"
+             xmlns:local="clr-namespace:GasUtilityEditor"
+             x:Class="GasUtilityEditor.MainPage">
+    <ContentPage.Resources>
+        <local:ColorConverter x:Key="ColorConverter" />
+    </ContentPage.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid x:Name="MapGrid"
+              IsVisible="False">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <esri:MapView x:Name="MyMapView"
+                          GeoViewTapped="OnGeoViewTapped" />
+            <Grid  Grid.Column="1"
+                   x:Name="PopupGrid"
+                   WidthRequest="400"
+                   IsVisible="False"
+                   Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <CollectionView x:Name="MyPopupViewer"
+                                Margin="5">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid BackgroundColor="{Binding ., Converter={StaticResource ColorConverter},ConverterParameter={x:Reference MyPopupViewer}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <Label Text="{Binding Key}" />
+                                <Label Text="{Binding Value}"
+                                       FontAttributes="Bold"
+                                       Grid.Column="1" />
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+                <Button x:Name="SendButton"
+                        Text="Send report"
+                        ImageSource="{calcite:CalciteIconImage Icon=Send, Color=White}"
+                        Style="{StaticResource CalcitePrimaryButtonStyle}"
+                        Grid.Row="1" />
+                <Grid  Grid.Row="1"
+                       x:Name="MarkInoperableGrid">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Picker x:Name="InoperableReasons"
+                            Title="Inoperable Reasons" />
+                    <Button x:Name="MarkButton"
+                            Text="Inoperable"
+                            Clicked="OnInoperable"
+                            ImageSource="{calcite:CalciteIconImage Icon=ValidateUtilityNetworkTopology, Color=Black}"
+                            Style="{StaticResource CalciteSecondaryButtonStyle}"
+                            Grid.Column="1" />
+                </Grid>
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="Previous"
+                            Clicked="OnPrevious"
+                            IsEnabled="False"
+                            ImageSource="{calcite:CalciteIconImage Icon=CaretLeft, Color=Black}"
+                            Style="{StaticResource CalciteSecondaryButtonStyle}" />
+                    <Button x:Name="Next"
+                            Clicked="OnNext"
+                            IsEnabled="False"
+                            ImageSource="{calcite:CalciteIconImage Icon=CaretRight, Color=Black}"
+                            Style="{StaticResource CalciteSecondaryButtonStyle}"
+                            Grid.Column="1" />
+                </Grid>
+            </Grid>
+            <VerticalStackLayout                            HorizontalOptions="Start"
+                                                            VerticalOptions="Start">
+                <SearchBar Placeholder="Search"
+                           WidthRequest="180"
+                           HeightRequest="50"
+                           BackgroundColor="White"
+                           PlaceholderColor="Black"
+                           HorizontalOptions="Fill"
+                           VerticalOptions="Center"
+                           TextColor="Black"
+                           CancelButtonColor="Black"
+                           SearchButtonPressed="OnSearchButtonPressed" />
+                <Button Text="Valves"
+                        WidthRequest="180"
+                        HeightRequest="50"
+                        Clicked="OnRunTraceIsolatingValves"
+                        Style="{StaticResource CalcitePrimaryButtonStyle}"
+                        ImageSource="{calcite:CalciteIconImage Icon=UtilityNetworkTrace, Color=White}" />
+                <Button Text="Customers"
+                        WidthRequest="180"
+                        HeightRequest="50"
+                        Clicked="OnRunTraceCustomerMeters"
+                        Style="{StaticResource CalciteDangerButtonStyle}"
+                        ImageSource="{calcite:CalciteIconImage Icon=UtilityNetworkTrace, Color=White}"
+                        Grid.Column="2" />
+                <Button x:Name="UndoEdits"
+                        IsEnabled="False"
+                        WidthRequest="180"
+                        HeightRequest="50"
+                        Text="Undo edits"
+                        Clicked="OnUndoEdits"
+                        ImageSource="{calcite:CalciteIconImage Icon=Undo, Color=Black}"
+                        Style="{StaticResource CalciteSecondaryButtonStyle}" />
+                <Button x:Name="SyncEdits"
+                        Clicked="OnSync"
+                        IsEnabled="False"
+                        WidthRequest="180"
+                        HeightRequest="50"
+                        Text="Sync edits"
+                        ImageSource="{calcite:CalciteIconImage Icon=Refresh, Color=Black}"
+                        Style="{StaticResource CalciteSecondaryButtonStyle}" />
+                <Button x:Name="CancelSync"
+                        IsVisible="False"
+                        Text="Cancel sync"
+                        Clicked="OnCancelLoad"
+                        Style="{StaticResource CalciteDangerButtonStyle}"
+                        ImageSource="{calcite:CalciteIconImage Icon=XCircle, Color=White}" />
+            </VerticalStackLayout>
+        </Grid>
+        <Grid x:Name="ConfigureGrid"
+              IsVisible="True"
+              Background="White">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition   Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <RadioButton x:Name="UseLocalCache"
+                         IsVisible="False"
+                         GroupName="Source">
+                <RadioButton.Content>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Image Source="{calcite:CalciteIconImage Icon=DataFolder, Color=Black}"
+                               HeightRequest="35"
+                               WidthRequest="35" />
+                        <Label Text="Use local cache"
+                               VerticalOptions="Center"
+                               Grid.Column="1" />
+                    </Grid>
+                </RadioButton.Content>
+            </RadioButton>
+            <RadioButton x:Name="TakeWebmapOffline"
+                         IsChecked="True"
+                         GroupName="Source"
+                         Grid.Column="1">
+                <RadioButton.Content>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Image Source="{calcite:CalciteIconImage Icon=Offline, Color=Black}"
+                               HeightRequest="35"
+                               WidthRequest="35" />
+                        <Label Text="Take web map offline"
+                               VerticalOptions="Center"
+                               Grid.Column="1" />
+                    </Grid>
+                </RadioButton.Content>
+            </RadioButton>
+            <RadioButton x:Name="DownloadMapArea"
+                         IsVisible="False"
+                         GroupName="Source"
+                         Grid.Column="2">
+                <RadioButton.Content>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Image Source="{calcite:CalciteIconImage Icon=Download, Color=Black}"
+                               HeightRequest="35"
+                               WidthRequest="35" />
+                        <Label Text="Download map area"
+                               VerticalOptions="Center"
+                               Grid.Column="1" />
+                    </Grid>
+                </RadioButton.Content>
+            </RadioButton>
+            <RadioButton x:Name="LoadWebmap"
+                         GroupName="Source"
+                         Grid.Column="3">
+                <RadioButton.Content>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Image Source="{calcite:CalciteIconImage Icon=Online, Color=Black}"
+                               HeightRequest="35"
+                               WidthRequest="35" />
+                        <Label Text="Load web map"
+                               VerticalOptions="Center"
+                               Grid.Column="1" />
+                    </Grid>
+                </RadioButton.Content>
+            </RadioButton>
+            <Grid Grid.ColumnSpan="4"
+                  Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Label Text="Web map" />
+                <Picker x:Name="WebmapPicker"
+                        ItemDisplayBinding="{Binding Title}"
+                        SelectedIndexChanged="OnWebmapChanged"
+                        Grid.Column="1" />
+                <Label Text="Map area"
+                       Grid.Row="1" />
+                <Picker x:Name="MapAreaPicker"
+                        ItemDisplayBinding="{Binding PortalItem.Title}"
+                        Grid.Row="1"
+                        Grid.Column="1" />
+                <Grid Grid.Row="2"
+                      Grid.ColumnSpan="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="LoadMap"
+                            Text="Load map"
+                            Clicked="OnLoadMapClicked"
+                            Style="{StaticResource CalcitePrimaryButtonStyle}"
+                            ImageSource="{calcite:CalciteIconImage Icon=Map, Color=White}" />
+                    <Button x:Name="CancelLoad"
+                            Text="Cancel load"
+                            Clicked="OnCancelLoad"
+                            Grid.Column="1"
+                            Style="{StaticResource CalciteDangerButtonStyle}"
+                            ImageSource="{calcite:CalciteIconImage Icon=XCircle, Color=White}" />
+                </Grid>
+            </Grid>
+        </Grid>
+        <ActivityIndicator x:Name="BusyIndicator"
+                           IsRunning="True"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center" />
+        <Label x:Name="Status"
+               Grid.Row="1"
+               VerticalOptions="End"
+               Background="White" />
+    </Grid>
+</ContentPage>
